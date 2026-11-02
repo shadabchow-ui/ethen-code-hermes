@@ -1,0 +1,70 @@
+{
+  "version": "ethen.tokens/0.1.3",
+  "status": "PROPOSED - owner draft values, not a visual freeze or IP clearance",
+  "source": {
+    "path": "REFERENCE/PA8_R1/tools/tokens_v01.json",
+    "sha256": "9b2e6a925b59f402d44235bbd802bb5d5190be5ed4866423b0c81fbb29a34a79",
+    "authority": "13_V6_DESIGN_SYSTEM_AUTHORITY.md (Ethen Design V0.1, provisional)"
+  },
+  "modes": [
+    "light",
+    "dark"
+  ],
+  "light": {
+    "ethen-canvas": "#FBFAF6",
+    "ethen-surface": "#F4F1EA",
+    "ethen-raised": "#FFFFFF",
+    "ethen-ink": "#20231F",
+    "ethen-muted": "#5E666E",
+    "ethen-structural-accent": "#313690",
+    "ethen-on-accent": "#FFFFFF",
+    "ethen-rule": "#D9D4C8",
+    "ethen-rule-strong": "#7D786E",
+    "ethen-attention": "#7A5200",
+    "ethen-error": "#A4282B",
+    "ethen-success": "#2F6A45",
+    "ethen-focus": "#313690"
+  },
+  "dark": {
+    "ethen-canvas": "#141613",
+    "ethen-surface": "#1C1F1B",
+    "ethen-raised": "#252923",
+    "ethen-ink": "#ECEAE3",
+    "ethen-muted": "#A6ADB4",
+    "ethen-structural-accent": "#A9AEF5",
+    "ethen-on-accent": "#141613",
+    "ethen-rule": "#3A3F38",
+    "ethen-rule-strong": "#7A8177",
+    "ethen-attention": "#E2B25A",
+    "ethen-error": "#F2A09A",
+    "ethen-success": "#8FD0A0",
+    "ethen-focus": "#A9AEF5"
+  },
+  "thresholds": {
+    "text": ["ethen-ink", "ethen-muted", "ethen-attention", "ethen-error", "ethen-success", 4.5],
+    "non_text": ["ethen-rule-strong", "ethen-focus", "ethen-structural-accent", 3.0],
+    "decorative_only": ["ethen-rule"]
+  },
+  "non_color": {
+    "spacing_px": [4, 8, 12, 16, 24, 32, 48, 64, 96],
+    "radius_px": {
+      "control": 3,
+      "card": 6,
+      "dialog": 10,
+      "avatar": "full",
+      "status-dot": "full"
+    },
+    "motion_ms": {
+      "control": 100,
+      "overlay": 160,
+      "panel": 220
+    },
+    "type_scale_px": [12, 13, 14, 16, 18, 22, 28, 36, 48],
+    "fonts": {
+      "interface": "system-ui",
+      "editorial": "ui-serif",
+      "operational": "ui-monospace",
+      "status": "system fallbacks only; licensed-candidate faces are not embedded until W2-DS-02 verifies licenses"
+    }
+  }
+}
