@@ -75,9 +75,10 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
     assert resumed.returncode == 0, resumed.stdout + resumed.stderr
     (evidence / 'resume.log').write_text(resumed.stdout + resumed.stderr)
     assert 'exact edit approval' not in resumed.stdout
+    before_resumed_stop = [path.read_bytes() for path in proof_paths]
     assert cli('stop', '--session', str(success)).returncode == 0
     assert cli('stop', '--session', str(success)).returncode == 0
-    assert [path.read_bytes() for path in proof_paths] == before_stop
+    assert [path.read_bytes() for path in proof_paths] == before_resumed_stop
     denied = tmp_path / 'denied'
     assert cli('init', '--session', str(denied)).returncode == 0
     refusal = cli('run', '--session', str(denied), answer='deny\n')

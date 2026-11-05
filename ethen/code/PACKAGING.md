@@ -74,7 +74,7 @@ owned fault injections for qualification, not task-running features.
 
 STOP is idempotent after a successfully completed task, including cached resume.
 It holds the controller lock while proving the recorded PID is absent, the durable
-and displayed completion receipts agree, source/Git/native history are unchanged,
+and displayed completion receipts agree, source/Git state matches and native history exists,
 and both recorded scopes are inactive with no cgroup. It checks PID absence again
 before returning without a signal. Inspection errors, incomplete/cancelled work,
 foreign identities, reused live PIDs and ambiguous scopes still refuse. Active STOP
