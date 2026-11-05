@@ -11,4 +11,7 @@ if __name__ == '__main__':
         raise SystemExit('New absolute owned session required')
     prepare(root)
     from ethen.code.package_inventory import inventory
-    (root / 'evidence/git-baseline.json').write_text(json.dumps(inventory(root / 'project/.git')))
+    (root / 'evidence/git-baseline.json').write_text(json.dumps(inventory(root / 'project/.git', {'index'})))
+
+    from ethen.code.product_workspace import git_read
+    (root / 'evidence/git-index-baseline.txt').write_text(git_read(root / 'project', 'ls-files', '--stage'))

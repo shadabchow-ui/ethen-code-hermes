@@ -18,9 +18,14 @@ def unit_record(session):
 
 
 def kill_scope(unit, signum):
-    return subprocess.run(['systemctl', '--user', 'kill', '--kill-whom=all', f'--signal={signum}', unit],
-                          env={'PATH': '/usr/bin:/bin', 'XDG_RUNTIME_DIR': f'/run/user/{os.getuid()}'},
-                          capture_output=True, text=True, check=False, timeout=15)
+    import logging
+    try:
+        return subprocess.run(['systemctl', '--user', 'kill', '--kill-whom=all', f'--signal={signum}', unit],
+                              env={'PATH': '/usr/bin:/bin', 'XDG_RUNTIME_DIR': f'/run/user/{os.getuid()}'},
+                              capture_output=True, text=True, check=False, timeout=15)
+    except (OSError, subprocess.TimeoutExpired):
+        logging.getLogger(__name__).exception('Owned scope signal failed; preserving session recovery evidence')
+        return None
 
 
 def stop(session: Path) -> None:
@@ -57,12 +62,12 @@ def launch(session: Path, mode: str, unit: str) -> int:
                'rootlesskit', '--net=host', 'unshare', '--net', 'bash', '-c',
                'ip link set lo up; exec "$@"', '_', sys.executable,
                '-m', 'ethen.code.isolation', '--resume', str(session), mode]
-    with subprocess.Popen(command, cwd=source, env=env, start_new_session=True) as process:
-        try:
-            return process.wait(timeout=150)
-        except (KeyboardInterrupt, subprocess.TimeoutExpired):
-            cancel_owned(session, process, unit)
-            return 130
+    process = subprocess.Popen(command, cwd=source, env=env, start_new_session=True)
+    try:
+        return process.wait(timeout=150)
+    except (KeyboardInterrupt, subprocess.TimeoutExpired):
+        cancel_owned(session, process, unit)
+        return 130
 
 
 def cancel_owned(session, process, unit):
@@ -76,4 +81,5 @@ def cancel_owned(session, process, unit):
         process.wait(timeout=30)
     except subprocess.TimeoutExpired:
         kill_scope(unit, 'SIGKILL')
+        process.kill()
         process.wait(timeout=15)

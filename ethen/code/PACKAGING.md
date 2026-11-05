@@ -37,6 +37,14 @@ existing one. The native launcher resolves only installed source/dependencies;
 it does not depend on the author checkout. This is a fixed-prefix installation,
 with an explicitly referenced external interpreter, not a portable binary bundle.
 installation.json records source identity, lock hashes and runtime version.
+It also records installed dependency versions and the external interpreter hash.
+Before copying, installation verifies the generated artifact-file inventory and
+rejects extras, modified files, escaping symlinks and noncanonical prefix paths.
+If dependencies are missing from the cache, installation fails closed. An explicit
+operator cache-preparation step may use Hermes `pm.build_env --source <artifact>
+--out <new-preparation-env> --python <existing-python> --cache <owned-cache>
+--no-install-project --sealed` with network access to fetch lock-verified Python
+dependencies. The delivered installer itself always remains offline.
 
 ## Local session
 
@@ -74,8 +82,9 @@ Stop all sessions and ensure no process uses the installation. From the extracte
 artifact, run `python3.14 -B -m ethen.code.package uninstall --prefix /owned/ethen-code`.
 Rollback verifies the installed-file inventory, refuses modified/unknown files and
 removes only the unchanged owned prefix. It preserves external sessions and receipts.
-Failed installations lack a completion manifest: preserve/reconcile them rather than
-assuming successful rollback. No global PATH links or services are installed.
+Failed installations record FAILED plus a conservative rollback inventory; they do
+not claim completion. If disk failure prevents writing that inventory, preserve and
+reconcile the incomplete prefix. No global PATH links or services are installed.
 
 Only Linux local operation is qualified. macOS and Windows workflow packages are
 NOT_RUN. Existing Hermes Desktop/Webapp and Ethen Foundation PR #1 are preserved.

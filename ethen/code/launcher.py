@@ -32,13 +32,7 @@ def selected(session: Path, repository: Path) -> Path:
     return repository
 
 
-def fixture_git(repository: Path, *args: str) -> str:
-    env = {'PATH': '/usr/bin:/bin', 'HOME': str(repository.parent / 'home'),
-           'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null', 'GIT_OPTIONAL_LOCKS': '0'}
-    return subprocess.check_output(['git', '-c', 'core.hooksPath=/dev/null', '-c',
-                                    'core.fsmonitor=false', '-C', str(repository), *args],
-                                   env=env, text=True, timeout=10)
-
+from ethen.code.product_workspace import git_read as fixture_git
 
 from ethen.code.product_processes import stop, worker
 
