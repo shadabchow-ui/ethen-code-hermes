@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sqlite3
 from pathlib import Path
 import subprocess
 import sys
@@ -77,7 +78,7 @@ def main(argv=None) -> int:
         (root / 'evidence/product-receipt.json').write_text(json.dumps(product, indent=2))
         print('Ethen Code review receipt\n' + json.dumps(product, indent=2))
         return 0
-    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired, subprocess.CalledProcessError) as exc:
+    except (OSError, ValueError, KeyError, sqlite3.Error, RuntimeError, subprocess.TimeoutExpired, subprocess.CalledProcessError) as exc:
         print(f'Ethen Code stopped: {exc}', file=sys.stderr)
         return 2
 

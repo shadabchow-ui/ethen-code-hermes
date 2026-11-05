@@ -29,19 +29,67 @@ def kill_scope(unit, signum):
 
 
 def stop(session: Path) -> None:
+    if not session.is_absolute() or session.resolve() != session or session.stat().st_uid != os.getuid():
+        raise PermissionError('Owned canonical session required')
+    with (session / 'evidence/controller.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            idle_lock = True
+        except BlockingIOError:
+            idle_lock = False
+        stop_session(session, idle_lock)
+
+
+def stop_session(session, idle_lock):
     unit = unit_record(session)
     record = json.loads((session / 'evidence/worker-identity.json').read_text())
-    if record.get('session') != str(session) or record.get('unit') != unit['unit']:
+    if record.get('session') != str(session):
         raise PermissionError('Worker belongs to another session or launch')
+    from ethen.code.product_idle import owned_unit
+    owned_unit(record.get('unit'))
     pid = record['pid']
-    descriptor = os.pidfd_open(pid)
+    if type(pid) is not int or not 0 < pid < 2**31 or not isinstance(record.get('start'), str) or not record['start'].isdigit():
+        raise PermissionError('Malformed worker process identity')
+    stop_recorded(session, unit, record, idle_lock)
+
+
+def stop_recorded(session, unit, record, idle_lock):
     try:
-        actual = Path('/proc', str(pid), 'stat').read_text().rsplit(')', 1)[1].split()[19]
-        if actual != record['start'] or Path('/proc', str(pid)).stat().st_uid != os.getuid():
-            raise PermissionError('Stale worker identity; refusing signal')
+        descriptor = os.pidfd_open(record['pid'])
+    except ProcessLookupError:
+        if not idle_lock:
+            raise PermissionError('Controller is active; idle state is not established') from None
+        from ethen.code.product_idle import require_absent_scope, require_completed
+        require_completed(session)
+        for name in {unit['unit'], record['unit']}:
+            require_absent_scope(name)
+        require_missing_pid(record['pid'])
+        return
+    try:
+        require_owned_process(unit, record)
         signal.pidfd_send_signal(descriptor, signal.SIGTERM)
     finally:
         os.close(descriptor)
+
+
+def require_owned_process(unit, record):
+    if record['unit'] != unit['unit']:
+        raise PermissionError('Worker belongs to another launch')
+    pid = record['pid']
+    actual = Path('/proc', str(pid), 'stat').read_text().rsplit(')', 1)[1].split()[19]
+    if actual != record['start'] or Path('/proc', str(pid)).stat().st_uid != os.getuid():
+        raise PermissionError('Stale worker identity; refusing signal')
+    from ethen.code.product_idle import require_active_scope
+    require_active_scope(unit['unit'], pid)
+
+
+def require_missing_pid(pid):
+    try:
+        descriptor = os.pidfd_open(pid)
+    except ProcessLookupError:
+        return
+    os.close(descriptor)
+    raise PermissionError('Recorded PID is live or reused; idle state is ambiguous')
 
 
 def worker(session: Path, mode: str) -> int:

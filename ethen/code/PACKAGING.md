@@ -72,6 +72,15 @@ pidfd with recorded process start identity to avoid signaling a recycled PID.
 Ctrl-C also requests native cleanup. --scenario cancel/crash are explicitly labeled
 owned fault injections for qualification, not task-running features.
 
+STOP is idempotent after a successfully completed task, including cached resume.
+It holds the controller lock while proving the recorded PID is absent, the durable
+and displayed completion receipts agree, source/Git/native history are unchanged,
+and both recorded scopes are inactive with no cgroup. It checks PID absence again
+before returning without a signal. Inspection errors, incomplete/cancelled work,
+foreign identities, reused live PIDs and ambiguous scopes still refuse. Active STOP
+requires the exact recorded start time, UID and scope/cgroup membership through a
+pidfd; a historical numeric PID alone never authorizes cancellation.
+
 No push, merge, deploy, real provider inference or paid fallback is enabled. The
 selection, exact-edit authorization, Landlock and budget checks remain authoritative.
 Session artifacts/evidence live outside the installation; preserve them separately.

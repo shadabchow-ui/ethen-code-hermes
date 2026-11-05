@@ -66,10 +66,18 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
     assert receipt['test_exit_codes'] == [1, 0] and receipt['diff_exit'] == 0
     assert receipt['native_agent'] and not receipt['push_merge_deployment']
     assert cli('receipt', '--session', str(success)).returncode == 0
+    proof_paths = [success / 'evidence' / name for name in ['receipt.json', 'budget.db', 'session.db']]
+    before_stop = [path.read_bytes() for path in proof_paths]
+    assert cli('stop', '--session', str(success)).returncode == 0
+    assert cli('stop', '--session', str(success)).returncode == 0
+    assert [path.read_bytes() for path in proof_paths] == before_stop
     resumed = cli('resume', '--session', str(success), answer='')
     assert resumed.returncode == 0, resumed.stdout + resumed.stderr
     (evidence / 'resume.log').write_text(resumed.stdout + resumed.stderr)
     assert 'exact edit approval' not in resumed.stdout
+    assert cli('stop', '--session', str(success)).returncode == 0
+    assert cli('stop', '--session', str(success)).returncode == 0
+    assert [path.read_bytes() for path in proof_paths] == before_stop
     denied = tmp_path / 'denied'
     assert cli('init', '--session', str(denied)).returncode == 0
     refusal = cli('run', '--session', str(denied), answer='deny\n')
@@ -113,4 +121,5 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
     assert not prefix.exists() and (success / 'evidence/receipt.json').exists()
     (evidence / 'lifecycle.json').write_text(json.dumps({'install': 0, 'start': 0, 'run': 0,
         'denial': 3, 'resume': 0, 'crash': 97, 'stop': 0, 'child_reaped': True,
-        'rollback': 0, 'rollback_unknown_file_refused': True, 'session_evidence_preserved': True}))
+        'rollback': 0, 'rollback_unknown_file_refused': True, 'session_evidence_preserved': True,
+        'idle_stop_before_and_after_resume': [0, 0, 0, 0], 'idle_stop_receipts_unchanged': True}))
