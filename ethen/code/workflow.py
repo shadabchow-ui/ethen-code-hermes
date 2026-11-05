@@ -46,7 +46,7 @@ def prepare(root: Path) -> None:
                                                  "request": "Fix add; preserve tests"}))
 
 
-def run(root: Path, mode: str = "success") -> dict:
+def run(root: Path, mode: str = "success", interactive: bool = False) -> dict:
     from ethen.code.isolation import require_confinement
     confinement = require_confinement(root)
     from acp_adapter.edit_approval import reset_edit_approval_requester, set_edit_approval_requester
@@ -115,7 +115,14 @@ def run(root: Path, mode: str = "success") -> dict:
                   Text('Synthetic cancellation qualification')]
     os.environ.update(HERMES_HOME=str(home), TERMINAL_CWD=str(repo), TERMINAL_ENV="local")
     db = SessionDB(db_path=root / "evidence/session.db")
-    token = set_edit_approval_requester(boundary.approve_edit)
+    def approval(proposal):
+        if interactive:
+            from ethen.code.console import approve
+            if not approve(proposal, root):
+                return False
+        return boundary.approve_edit(proposal)
+
+    token = set_edit_approval_requester(approval)
     handle = None
     route_handle = None
     from ethen.code.provider_execution import BoundedProvider, RouteStopped, loopback_available
@@ -129,6 +136,9 @@ def run(root: Path, mode: str = "success") -> dict:
                                     provider="custom", base_url=server.base_url)
             context = PluginContext(PluginManifest(name="owned-repository-boundary"), _delivery_manager())
             handle = context.register_hook("pre_tool_call", gate)
+            if interactive:
+                from ethen.code.console import event
+                context.register_hook('post_tool_call', event)
             if mode == 'crash':
                 def crash_after_effect(tool_name, **metadata):
                     if tool_name == 'patch' and (repo / 'calc.py').read_text() == AFTER:
@@ -145,6 +155,8 @@ def run(root: Path, mode: str = "success") -> dict:
             control = NativeCancellation(agent, boundary, route)
             control.start()
             (root / 'evidence/worker.pid').write_text(str(os.getpid()))
+            (root / 'evidence/worker-identity.json').write_text(json.dumps({
+                'pid': os.getpid(), 'start': Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]}))
             try:
                 result = agent.run_conversation(issue["request"],
                                                 conversation_history=[], task_id="owned-issue")

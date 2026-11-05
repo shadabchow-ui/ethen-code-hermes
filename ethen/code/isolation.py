@@ -63,7 +63,7 @@ if __name__ == '__main__':
     if len(sys.argv) not in (3, 4) or sys.argv[1] not in {'--prepare', '--resume', '--run'}:
         raise SystemExit('Use --prepare/--run with an owned absolute output path')
     mode = sys.argv[3] if len(sys.argv) == 4 else "success"
-    if mode not in {"success", "cancel", "crash"}:
+    if mode not in {"success", "cancel", "crash", "interactive"}:
         raise SystemExit("Unknown qualification mode")
     root = Path(sys.argv[2])
     if not root.is_absolute() or root.is_symlink():
@@ -73,4 +73,4 @@ if __name__ == '__main__':
     else:
         require_confinement(root)
         from ethen.code.workflow import run
-        run(root, mode=mode)
+        run(root, mode='success' if mode == 'interactive' else mode, interactive=mode == 'interactive')
