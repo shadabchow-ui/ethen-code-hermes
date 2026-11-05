@@ -212,3 +212,27 @@ def test_real_controller_lock_excludes_idle_proof(completed):
         fcntl.flock(controller, fcntl.LOCK_EX | fcntl.LOCK_NB)
         with pytest.raises(PermissionError, match='Controller is active'):
             product_processes.stop(completed)
+
+
+def test_parent_cancel_scope_inspection_timeout_uses_bounded_owned_fallback(tmp_path, monkeypatch):
+    signals = []
+    waits = []
+
+    def timed_out_stop(_):
+        raise subprocess.TimeoutExpired('systemctl owned scope inspection', 10)
+
+    def bounded_wait(*, timeout):
+        waits.append(timeout)
+        return 0
+
+    class OwnedLauncher:
+        wait = staticmethod(bounded_wait)
+
+        def kill(self):
+            pytest.fail('Graceful owned scope fallback unexpectedly escalated')
+
+    monkeypatch.setattr(product_processes, 'stop', timed_out_stop)
+    monkeypatch.setattr(product_processes, 'kill_scope', lambda unit, sig: signals.append((unit, sig)))
+    product_processes.cancel_owned(tmp_path / 'session', OwnedLauncher(), UNIT)
+    assert signals == [(UNIT, 'SIGTERM')]
+    assert waits == [30]

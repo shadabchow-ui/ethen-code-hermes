@@ -122,7 +122,7 @@ def cancel_owned(session, process, unit):
     import logging
     try:
         stop(session)
-    except (OSError, ValueError, KeyError):
+    except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
         logging.getLogger(__name__).exception('Native worker not ready; stopping this owned scope')
         kill_scope(unit, 'SIGTERM')
     try:
