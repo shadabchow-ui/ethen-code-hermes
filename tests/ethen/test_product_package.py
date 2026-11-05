@@ -12,21 +12,29 @@ import pytest
 from tests.waiting import wait_until
 
 pytestmark = [pytest.mark.platforms('linux'),
-              pytest.mark.skipif(not os.environ.get('ETHEN_PACKAGE_ARTIFACT'), reason='sealed artifact opt-in')]
+              pytest.mark.skipif(os.environ.get('HERMES_RUN_E2E') != '1', reason='owned native opt-in')]
 
 
-def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path):
-    artifact = Path(os.environ['ETHEN_PACKAGE_ARTIFACT'])
+def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytestconfig):
+    artifact = Path(pytestconfig.getoption('--ethen-artifact'))
     source = tmp_path / 'artifact'
     source.mkdir()
     with tarfile.open(artifact) as archive:
         archive.extractall(source, filter='data')
     prefix = tmp_path / 'installed'
-    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', HERMES_RUNTIME_DIR=pytestconfig.getoption('--ethen-tools'))
     env.pop('PYTHONPATH', None)
+    injected = source / '.env'
+    injected.write_text('PRIVATE_SENTINEL=not-to-copy')
+    rejected = subprocess.run([sys.executable, '-B', '-m', 'ethen.code.package', 'install',
+                               '--prefix', str(prefix), '--python', str(Path(sys._base_executable)),
+                               '--cache', pytestconfig.getoption('--ethen-cache')],
+                              cwd=source, env=env, check=False, capture_output=True, text=True, timeout=90)
+    assert rejected.returncode != 0 and not prefix.exists()
+    injected.unlink()
     install = subprocess.run([sys.executable, '-B', '-m', 'ethen.code.package', 'install',
                               '--prefix', str(prefix), '--python', str(Path(sys._base_executable)),
-                              '--cache', os.environ['ETHEN_PACKAGE_CACHE']],
+                              '--cache', pytestconfig.getoption('--ethen-cache')],
                              cwd=source, env=env, check=False, capture_output=True, text=True, timeout=180)
     assert install.returncode == 0, install.stdout + install.stderr
     app = prefix / 'bin/ethen-code'
@@ -38,6 +46,10 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path):
     assert cli('--help').returncode == 0
     success = tmp_path / 'success'
     assert cli('init', '--session', str(success)).returncode == 0
+    poison = success / 'project/sitecustomize.py'
+    poison.write_text('raise RuntimeError("must never execute")')
+    assert cli('run', '--session', str(success), answer='approve\n').returncode == 2
+    poison.unlink()
     denied_repo = cli('run', '--session', str(success), '--repo', str(tmp_path))
     assert denied_repo.returncode == 2
     run = cli('run', '--session', str(success), '--repo', str(success / 'project'), answer='approve\n')

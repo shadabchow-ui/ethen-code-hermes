@@ -156,7 +156,9 @@ def run(root: Path, mode: str = "success", interactive: bool = False) -> dict:
             control.start()
             (root / 'evidence/worker.pid').write_text(str(os.getpid()))
             (root / 'evidence/worker-identity.json').write_text(json.dumps({
-                'pid': os.getpid(), 'start': Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]}))
+                'pid': os.getpid(), 'start': Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19],
+                'session': str(root), 'unit': json.loads((root / 'evidence/controller-unit.json').read_text())['unit']
+                if (root / 'evidence/controller-unit.json').exists() else None}))
             try:
                 result = agent.run_conversation(issue["request"],
                                                 conversation_history=[], task_id="owned-issue")

@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 
-def inventory(root: Path) -> dict:
+def inventory(root: Path, excluded=()) -> dict:
     entries = {}
     for p in sorted(root.rglob('*')):
         name = str(p.relative_to(root))
-        if name == 'installed-files.json':
+        if name in excluded:
             continue
         if p.is_symlink():
             entries[name] = ['link', str(p.readlink())]
@@ -26,7 +26,7 @@ def uninstall(prefix: Path) -> None:
         raise ValueError('Owned absolute nonsymlink installation prefix required')
     marker = prefix / 'installed-files.json'
     expected = json.loads(marker.read_text())
-    if inventory(prefix) != expected:
+    if inventory(prefix, {'installed-files.json'}) != expected:
         raise PermissionError('Installation changed; preserve and reconcile unknown files before rollback')
     if any(p.is_mount() for p in prefix.rglob('*')):
         raise PermissionError('Nested mount in installation')

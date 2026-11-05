@@ -5,7 +5,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-import signal
 import subprocess
 import sys
 
@@ -15,6 +14,8 @@ def selected(session: Path, repository: Path) -> Path:
         raise PermissionError('Select an owned absolute session')
     if repository.is_symlink() or repository.absolute() != session / 'project':
         raise PermissionError('Only this session\'s disposable repository is authorized')
+    from ethen.code.product_workspace import validate_workspace
+    validate_workspace(session)
     issue = json.loads((session / 'issue.json').read_text())
     if issue.get('repository') != str(repository) or issue.get('id') != 'owned-issue':
         raise PermissionError('Repository assignment mismatch')
@@ -39,40 +40,7 @@ def fixture_git(repository: Path, *args: str) -> str:
                                    env=env, text=True, timeout=10)
 
 
-def stop(session: Path) -> None:
-    record = json.loads((session / 'evidence/worker-identity.json').read_text())
-    pid = record['pid']
-    descriptor = os.pidfd_open(pid)
-    try:
-        actual = Path('/proc', str(pid), 'stat').read_text().rsplit(')', 1)[1].split()[19]
-        if actual != record['start'] or Path('/proc', str(pid)).stat().st_uid != os.getuid():
-            raise PermissionError('Stale worker identity; refusing signal')
-        signal.pidfd_send_signal(descriptor, signal.SIGTERM)
-    finally:
-        os.close(descriptor)
-
-
-def worker(session: Path, mode: str) -> int:
-    source = Path(__file__).resolve().parents[2]
-    env = {'PATH': str(Path(sys.executable).parent) + ':/usr/bin:/bin',
-           'HOME': str(session / 'home'), 'PYTHONDONTWRITEBYTECODE': '1',
-           'LANG': 'C.UTF-8', 'TZ': 'UTC'}
-    env['XDG_RUNTIME_DIR'] = f'/run/user/{os.getuid()}'
-    command = ['systemd-run', '--user', '--scope', '--quiet', '-p', 'MemoryMax=2200M',
-               '-p', 'MemorySwapMax=0', '-p', 'CPUQuota=170%',
-               'rootlesskit', '--net=host', 'unshare', '--net', 'bash', '-c',
-               'ip link set lo up; exec "$@"', '_', sys.executable,
-               '-m', 'ethen.code.isolation', '--resume', str(session), mode]
-    with subprocess.Popen(command, cwd=source, env=env, start_new_session=True) as process:
-        try:
-            return process.wait(timeout=150)
-        except (KeyboardInterrupt, subprocess.TimeoutExpired):
-            if (session / 'evidence/worker-identity.json').exists():
-                stop(session)
-            else:
-                os.killpg(process.pid, signal.SIGTERM)
-            process.wait(timeout=30)
-            return 130
+from ethen.code.product_processes import stop, worker
 
 
 def main(argv=None) -> int:
@@ -90,7 +58,7 @@ def main(argv=None) -> int:
         if not root.is_absolute() or root.is_symlink():
             raise PermissionError('Owned absolute nonsymlink session path required')
         if args.command == 'init':
-            result = subprocess.run([sys.executable, '-m', 'ethen.code.product_prepare', str(root)], check=False)
+            result = subprocess.run([sys.executable, '-m', 'ethen.code.product_prepare', str(root)], check=False, timeout=30)
             if result.returncode == 0:
                 print(f'Ethen Code disposable repository: {root / "project"}')
             return result.returncode
