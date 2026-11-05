@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -17,6 +18,8 @@ pytestmark = [pytest.mark.platforms('linux'),
 
 def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytestconfig):
     artifact = Path(pytestconfig.getoption('--ethen-artifact'))
+    evidence = Path(pytestconfig.getoption('--ethen-evidence'))
+    evidence.mkdir(mode=0o700, parents=True)
     source = tmp_path / 'artifact'
     source.mkdir()
     with tarfile.open(artifact) as archive:
@@ -37,6 +40,8 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
                               '--cache', pytestconfig.getoption('--ethen-cache')],
                              cwd=source, env=env, check=False, capture_output=True, text=True, timeout=180)
     assert install.returncode == 0, install.stdout + install.stderr
+    (evidence / 'install.log').write_text(install.stdout + install.stderr)
+    shutil.copy2(prefix / 'installation.json', evidence / 'installation.json')
     app = prefix / 'bin/ethen-code'
 
     def cli(*args, answer=None):
@@ -54,6 +59,7 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
     assert denied_repo.returncode == 2
     run = cli('run', '--session', str(success), '--repo', str(success / 'project'), answer='approve\n')
     assert run.returncode == 0, run.stdout + run.stderr
+    (evidence / 'session.log').write_text(run.stdout + run.stderr)
     assert 'exact edit approval' in run.stdout and 'return a + b' in run.stdout
     assert '[terminal]' in run.stdout and 'exit_code' in run.stdout
     receipt = json.loads((success / 'evidence/receipt.json').read_text())
@@ -62,11 +68,13 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
     assert cli('receipt', '--session', str(success)).returncode == 0
     resumed = cli('resume', '--session', str(success), answer='')
     assert resumed.returncode == 0, resumed.stdout + resumed.stderr
+    (evidence / 'resume.log').write_text(resumed.stdout + resumed.stderr)
     assert 'exact edit approval' not in resumed.stdout
     denied = tmp_path / 'denied'
     assert cli('init', '--session', str(denied)).returncode == 0
     refusal = cli('run', '--session', str(denied), answer='deny\n')
     assert refusal.returncode == 3, refusal.stdout + refusal.stderr
+    (evidence / 'denial.log').write_text(refusal.stdout + refusal.stderr)
     assert 'Edit denied' in refusal.stdout
     assert 'return a - b' in (denied / 'project/calc.py').read_text()
     assert not (denied / 'evidence/receipt.json').exists()
@@ -92,6 +100,8 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
             if proc.poll() is None:
                 proc.send_signal(signal.SIGINT)
                 proc.communicate(timeout=45)
+    for name, session in [('success', success), ('denied', denied), ('cancel', cancel), ('crash', crash)]:
+        shutil.copytree(session / 'evidence', evidence / name)
     unknown = prefix / 'retain-unknown.txt'
     unknown.write_text('must not delete')
     rollback_command = [sys.executable, '-B', '-m', 'ethen.code.package', 'uninstall', '--prefix', str(prefix)]
@@ -101,3 +111,6 @@ def test_clean_offline_install_native_cli_lifecycle_and_rollback(tmp_path, pytes
     rollback = subprocess.run(rollback_command, cwd=source, env=env, check=False, capture_output=True, text=True, timeout=90)
     assert rollback.returncode == 0, rollback.stdout + rollback.stderr
     assert not prefix.exists() and (success / 'evidence/receipt.json').exists()
+    (evidence / 'lifecycle.json').write_text(json.dumps({'install': 0, 'start': 0, 'run': 0,
+        'denial': 3, 'resume': 0, 'crash': 97, 'stop': 0, 'child_reaped': True,
+        'rollback': 0, 'rollback_unknown_file_refused': True, 'session_evidence_preserved': True}))

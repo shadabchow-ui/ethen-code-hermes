@@ -34,7 +34,7 @@ def selected(session: Path, repository: Path) -> Path:
 
 def fixture_git(repository: Path, *args: str) -> str:
     env = {'PATH': '/usr/bin:/bin', 'HOME': str(repository.parent / 'home'),
-           'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null'}
+           'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null', 'GIT_OPTIONAL_LOCKS': '0'}
     return subprocess.check_output(['git', '-c', 'core.hooksPath=/dev/null', '-c',
                                     'core.fsmonitor=false', '-C', str(repository), *args],
                                    env=env, text=True, timeout=10)
@@ -77,7 +77,11 @@ def main(argv=None) -> int:
         receipt = root / 'evidence/receipt.json'
         if not receipt.exists():
             receipt = root / 'evidence/cancel-receipt.json'
-        print('Ethen Code review receipt\n' + receipt.read_text())
+        product = {'application': 'Ethen Code', 'selected_repository': str(root / 'project'),
+                   'source': json.loads((Path(__file__).resolve().parents[2] / 'ethen-package-source.json').read_text()),
+                   'workflow': json.loads(receipt.read_text())}
+        (root / 'evidence/product-receipt.json').write_text(json.dumps(product, indent=2))
+        print('Ethen Code review receipt\n' + json.dumps(product, indent=2))
         return 0
     except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired, subprocess.CalledProcessError) as exc:
         print(f'Ethen Code stopped: {exc}', file=sys.stderr)

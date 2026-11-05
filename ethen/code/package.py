@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import sys
+from email.parser import Parser
 
 
 def assemble(source: Path, prefix: Path, python: Path, cache: Path) -> dict:
@@ -34,6 +35,10 @@ def assemble(source: Path, prefix: Path, python: Path, cache: Path) -> dict:
                   'external_interpreter': str(python), 'platform': sys.platform,
                   'source': json.loads((repo / 'ethen-package-source.json').read_text()),
                   'desktop': 'NOT_RUN', 'hosted_execution': 'NOT_RUN'}
+    provenance['installed_dependencies'] = sorted(
+        (Parser().parsestr(p.read_text())['Name'], Parser().parsestr(p.read_text())['Version'])
+        for p in site.glob('*.dist-info/METADATA'))
+    provenance['external_interpreter_sha256'] = hashlib.sha256(python.resolve().read_bytes()).hexdigest()
     (prefix / 'installation.json').write_text(json.dumps(provenance, indent=2))
     from ethen.code.package_inventory import inventory
     (prefix / 'installed-files.json').write_text(json.dumps(inventory(prefix, {'installed-files.json'}), sort_keys=True))

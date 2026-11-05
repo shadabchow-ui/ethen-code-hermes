@@ -55,6 +55,7 @@ def enter(root: Path, resume: bool = False, mode: str = "success") -> None:
            'HERMES_HOME': str(root / 'home'), 'PYTHONDONTWRITEBYTECODE': '1',
            'TERMINAL_CWD': str(root / 'project'), 'TERMINAL_ENV': 'local',
            'GIT_CONFIG_NOSYSTEM': '1', 'GIT_CONFIG_GLOBAL': '/dev/null',
+           'GIT_OPTIONAL_LOCKS': '0',
            'GIT_TEMPLATE_DIR': str(root / 'home/git-template'), 'LANG': 'C.UTF-8', 'TZ': 'UTC', 'TMPDIR': str(root / 'home/tmp')}
     os.execve(args[0], args, env)
 
