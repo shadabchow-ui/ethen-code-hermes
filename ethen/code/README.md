@@ -55,7 +55,7 @@ namespace; only there is an owned scratch directory bound over `/var/tmp`.
 `unshare --net` exposes loopback only. Landlock permits writes only to owned home,
 scratch and evidence paths plus the canonical runner's ignored duration-cache
 file. Source and unrelated host paths remain write-denied. Broad filesystem reads
-are allowed: this is **not a confidentiality or multi-tenant sandbox**. The
+are allowed: this is **not a confidentiality or multi-tenant sandbox**. It is also **not an integrity boundary against hostile code**: Landlock confines direct filesystem writes only, while reads, unix-socket IPC (for example the user D-Bus and rootless Docker sockets), signals to same-uid host processes and metadata changes (chmod, utime, xattrs) are not confined, and the Landlock rules here come from a user-space stand-in for util-linux 2.40 setpriv on kernel ABI 4 (see the EV6-044 evidence). It suits the scripted fixture only, not untrusted code. The
 fixture refuses to start unless no-new-privileges, loopback-only networking and
 the owned outside-write denial and kernel memory/swap/CPU limits are verified. The launcher records actual cgroup
 limits/peak/events and unmounts its scratch directory on exit.

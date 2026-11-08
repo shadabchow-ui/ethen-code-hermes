@@ -48,5 +48,56 @@
       "ethen/foundation/ethen.tokens.json": "9f30a9db8c2ac2e039841d1a9d46e4b465be8e52dd5be35495ac980a9df6985a",
       "ethen/foundation/sync.mjs": "73cd83055bb2463609f8e6920ee633e9b7bd2820531b059a3114f4bf82df2497"
     }
-  }
+  },
+  "license_and_notice_files": {
+    "note": "Every tracked LICENSE/COPYING/NOTICE file (any depth), sha256 of contents; the set itself is checked, so adding or deleting one fails.",
+    "files": {
+      "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6",
+      "apps/desktop/src/plugins/hermes-bots/LICENSE": "5f79d321c17de8ef6e5f34967dc5b484afebeeefd87180890d9741941f6b815f",
+      "optional-skills/creative/ai-presenter-video/LICENSE": "5ee4e300085ba144aae1ec5b72774ef5408bd933c1f02f429359313a4251bfad",
+      "optional-skills/creative/anatomy/LICENSE.txt": "87c078ab9d90a3044f359e6b563d4e6afea7aa060897cf4f21618687b3856796",
+      "optional-skills/creative/auteur/LICENSE": "bf05f978d8f8023c8eca67afdcac26fdbaf793fbe3b742a06a74d04c793d9cf2",
+      "optional-skills/creative/dream-loop/LICENSE.txt": "1607e9149a254c619d0ceb4119ed9346e13048c28c1d437d80ff2837e40159da",
+      "optional-skills/creative/ip-as-logo/LICENSE": "ff717ba18c263ade5fdaf25a9e7545a34796af984fadcb8f01e91672abe4229e",
+      "optional-skills/creative/mono-color/LICENSE.txt": "2025880f6441e121c76c01bc5996e84a7498d9d5aa7222a10400d303bdd043cb",
+      "optional-skills/creative/system-atlas/LICENSE.txt": "28d538f4ce6d517ea6f04a67fc4a2bf60f69254f696ba21fa1946cc668c21767",
+      "optional-skills/software-development/ast-grep/LICENSE": "b083425948376611de9b92b0aeb7377e604505756ea427e541a34d9b030d4dc1",
+      "optional-skills/software-development/pr-lens/LICENSE.txt": "f95e90af396c71c9a94648bd58e4f5bb2dcab4f6ac3ab7d3d2ca3f4e4f4a1ae7",
+      "optional-skills/web-development/scrollcraft/LICENSE.txt": "dd471a27eca72488a53e6ea6fbe9392d81aa3f01e950e63fe328affb2ddfa6e3",
+      "plugins/hermes-achievements/LICENSE": "5c6bbd852eeff017e73830408977d26e4379c5f9bb6edb03fce171f81db5fe43",
+      "plugins/security-guidance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "plugins/security-guidance/NOTICE": "adc3dd09b90dd9240f56d5b9c782986028a312ab150c84a208de1a5d2b948227",
+      "skills/creative/humanizer/LICENSE": "4ac4810254ab36d45419141aeb8e69bf50652cfafe5b2dab947d06d44e5cbf96",
+      "skills/productivity/microsoft-office/LICENSE": "8aa3c7717d57a68490c31eef4b57b6887e892f0566ff866078ebd76113d357e2",
+      "skills/productivity/pdf/LICENSE": "8aa3c7717d57a68490c31eef4b57b6887e892f0566ff866078ebd76113d357e2"
+    }
+  },
+  "deploy_disabled_vercel_json": {
+    "note": "The vercel.json files that disable automatic deployments (added by the preserved-source commit); the set and the contents are checked.",
+    "files": {
+      "apps/bootstrap-installer/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "apps/desktop/electron/find-in-page-native-fixture/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "apps/desktop/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "apps/shared/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "plugins/platforms/photon/sidecar/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "scripts/whatsapp-bridge/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "tests-js/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "ui-tui/packages/hermes-ink/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "ui-tui/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "web/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
+      "website/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7"
+    }
+  },
+  "workspace_manifest": {
+    "note": "Root package.json (npm workspaces list) is unchanged from the pinned upstream base; an 'open workspaces' drift guard.",
+    "files": {
+      "package.json": "1b2e18d82ec312b7411518dbdad8962f7c4968e24205dfe284a3ff52f2b8b97c"
+    }
+  },
+  "entry_point_files": [
+    "hermes_cli/main.py",
+    "agent/legacy_cli.py",
+    "acp_adapter/entry.py"
+  ]
 }
