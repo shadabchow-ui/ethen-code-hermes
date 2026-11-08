@@ -1,0 +1,52 @@
+{
+  "schema": "ethen.code.upstream-pins/1",
+  "job": "EV6-044",
+  "decision": "Hermes Agent is the sole Ethen Code runtime foundation; the OpenCode-derived repository is an unchanged archive with no runtime, adapter, source import or migration dependency in this repository.",
+  "hermes": {
+    "upstream": "https://github.com/NousResearch/hermes-agent",
+    "license": "MIT",
+    "copyright_holder": "Nous Research",
+    "pinned_base_commit": "5e7c2b254d414e4e25105231f818f385fee67469",
+    "pinned_base_date": "2026-11-02",
+    "ancestry_check": "5e7c2b254d414e4e25105231f818f385fee67469 is an ancestor of NousResearch/hermes-agent main (main was 1f86cc13a137f478566bdaec0edbbbfe06419738, 2535 newer commits) when checked on 2026-11-08 with a blobless fetch and git merge-base --is-ancestor.",
+    "fork": "https://github.com/shadabchow-ui/ethen-code-hermes",
+    "fork_main_equals_pinned_base": true,
+    "ui_pr_1_commit": "bdeda596ab6ee7f503992294605a3e3087049646",
+    "qualification_commit": "84aa0c1de1e07b27a01132b6f74173d5f6925065",
+    "preserved_source_commit": "bf10dc9ee0fa7b9974b903e0e2949e352c96875b"
+  },
+  "opencode": {
+    "repository": "shadabchow-ui/ethen-code-oc",
+    "status": "ARCHIVE_UNCHANGED_NOT_RE_PINNED_HERE",
+    "note": "The repository is private; no credential was used and no commit id could be read on 2026-11-08, so its m04-integration baseline is not re-verified by this record. Nothing in this repository imports or depends on it."
+  },
+  "unchanged_from_pinned_base": {
+    "note": "These files have the same git blob as the pinned upstream base at 5e7c2b2 (compared on 2026-11-08). The sha256 values are of the file contents and are checked by tests/ethen/test_upstream_pins.py.",
+    "files": {
+      "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6",
+      "README.md": "38b023e1bb33bf302dbc7d0856dd7d79e87cbd67de506dac47a3fed6e5c776bc",
+      "SECURITY.md": "08b733d1f2c71f8cdd87200beb10c06185d0912a6eb19bbf69149dbb4e207a55",
+      "pyproject.toml": "e5d769e9ee32a398aef8ede5123e0170673c0c4cf95342334d4532c8f18b5c67",
+      "uv.lock": "e7314b3489730fd1832e53d79979bb01986246e657058766ed09372fb30fbf70"
+    },
+    "cli_entry_points": {
+      "hermes": "hermes_cli.main:main",
+      "hermes-agent": "agent.legacy_cli:main",
+      "hermes-acp": "acp_adapter.entry:main"
+    }
+  },
+  "ethen_foundation_ui_pr_1": {
+    "note": "The nine files of UI PR #1 (opt-in Ethen Foundation preset) must stay byte-identical to the reviewed PR; sha256 of the file contents.",
+    "files": {
+      "apps/desktop/src/themes/ethen.test.tsx": "563197d906c2bb504bfe5ae0f4cecf3bc12c53632dbc7f028991c6f9183824cd",
+      "apps/desktop/src/themes/ethen.ts": "d46ed7d033bc09c21a3af557770da9b60fcf14dd7e72735da29b2514e2fccd79",
+      "apps/desktop/src/themes/presets.ts": "f60c33ac98187bdea0e1fa809dca5005a576a04cb76b5def8b1554d8c1359f82",
+      "apps/shared/package.json": "16b587fc2d82c7c3b30633be9280a320b7911ed868245fa1f7684bc9dc0b3685",
+      "apps/shared/src/ethen-foundation.ts": "63f74bb8adbdd0c28df278fe9db1e3c0160906becf1b5318e83115cd56a0281e",
+      "ethen/foundation/QUALIFICATION.md": "faf7948570513548bb31240807822291e6cca0829d496bd5ba7784f268ad1876",
+      "ethen/foundation/README.md": "aad51a54d3a98cd4e7c615cd63efb16fe52748b743144a0ca16d79ff44c24125",
+      "ethen/foundation/ethen.tokens.json": "9f30a9db8c2ac2e039841d1a9d46e4b465be8e52dd5be35495ac980a9df6985a",
+      "ethen/foundation/sync.mjs": "73cd83055bb2463609f8e6920ee633e9b7bd2820531b059a3114f4bf82df2497"
+    }
+  }
+}
