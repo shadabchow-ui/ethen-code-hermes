@@ -5,8 +5,11 @@ Hermes Agent is the sole runtime foundation for Ethen Code. The canonical fork i
 was fetched directly from `NousResearch/hermes-agent`; upstream MIT LICENSE and
 history remain intact. UI PR #1, `bdeda596ab6ee7f503992294605a3e3087049646`, is the
 parent of this work. Its nine Foundation/theme files are preserved byte for byte.
-The historical OpenCode repository is an unchanged archive, with no runtime,
-compatibility layer, source import or migration dependency here.
+Only Hermes is pinned. The historical OpenCode repository (`shadabchow-ui/ethen-code-oc`)
+is an **owner decision**, not an established fact: it is treated as an unchanged archive,
+not pinned or re-verified here (private repository unreadable without credentials).
+This repository has no runtime, compatibility layer, source import or migration
+dependency on it; `tests/ethen/test_upstream_pins.py` scans for such references.
 
 `qualification.py` is a public, synthetic-only consumer of existing Hermes
 interfaces. It is deliberately not an agent service, new tool implementation or
@@ -52,11 +55,33 @@ flock -n "$existing_heavy_lock" systemd-run --user --scope \
 
 The output directory must not exist. `rootlesskit` creates a private mount/user
 namespace; only there is an owned scratch directory bound over `/var/tmp`.
-`unshare --net` exposes loopback only. Landlock permits writes only to owned home,
-scratch and evidence paths plus the canonical runner's ignored duration-cache
-file. Source and unrelated host paths remain write-denied. Broad filesystem reads
-are allowed: this is **not a confidentiality or multi-tenant sandbox**. It is also **not an integrity boundary against hostile code**: Landlock confines direct filesystem writes only, while reads, unix-socket IPC (for example the user D-Bus and rootless Docker sockets), signals to same-uid host processes and metadata changes (chmod, utime, xattrs) are not confined, and the Landlock rules here come from a user-space stand-in for util-linux 2.40 setpriv on kernel ABI 4 (see the EV6-044 evidence). It suits the scripted fixture only, not untrusted code. The
-fixture refuses to start unless no-new-privileges, loopback-only networking and
+`unshare --net` exposes loopback only. Landlock permits direct filesystem writes only to
+owned home, scratch and evidence paths plus the canonical runner ignored duration-cache
+file; source and unrelated host paths are write-denied for that class of operation.
+The cgroup scope caps memory, swap and CPU; it is not isolation.
+
+**What this envelope does not do.** It is a guard for the scripted fixture, not a
+security boundary. It is unsuitable for untrusted code, confidentiality, multi-tenancy
+or the hosted runtime isolation that EV6-045 and EV6-046 require.
+
+- Landlock here restricts direct filesystem writes (content and namespace operations) only.
+  It does not confine reads (all of `/` is readable, including home-directory secrets).
+- It does not confine unix-socket IPC. Connecting to the user D-Bus and the rootless Docker
+  sockets was proven to give an unconfined escape: a transient `systemd-run --user` unit
+  created a file outside the write allowlist.
+- It does not confine signals to same-uid host processes (the pid namespace is the host one)
+  or metadata changes (chmod, utime, xattrs, flock).
+- The process is uid 0 inside its user namespace and holds namespaced capabilities;
+  only Landlock mount/ptrace hooks and no-new-privs limit them.
+- Network isolation is the network namespace alone (loopback only). Landlock network rights
+  are not used, and the unix-socket paths above bypass it.
+- The Landlock rules come from a coordinator-written, non-upstream user-space stand-in for
+  util-linux 2.40 `setpriv --landlock-*`, valid only on the qualification host (kernel 6.8,
+  Landlock ABI 4, util-linux 2.39, whose own `setpriv` has no Landlock support).
+  Run evidence: `evidence/ev6-044-q3` (outside this repository); the escape and signal
+  findings are from the independent review probes recorded with the EV6-044 evidence.
+
+The fixture refuses to start unless no-new-privileges, loopback-only networking and
 the owned outside-write denial and kernel memory/swap/CPU limits are verified. The launcher records actual cgroup
 limits/peak/events and unmounts its scratch directory on exit.
 
@@ -70,8 +95,9 @@ missing/denied/timeout outcomes, edit approvals and interrupt compatibility.
 ## Scope and remaining boundaries
 
 Model routing is a qualification contract: only `fake-model`, an exact numeric
-loopback HTTP origin and zero permitted spend are accepted. Kernel networking
-contains the SDK and auxiliary paths. Actual model execution remains **UNVERIFIED**.
+loopback HTTP origin and zero permitted spend are accepted. Within the fixture, the network namespace (loopback only) keeps the SDK and
+auxiliary paths off the host network; it is not a barrier against hostile code
+(see the sandbox limits above). Actual model execution remains **UNVERIFIED**.
 No paid provider, external teacher/model API, public listener or production
 configuration is enabled. Full routing, policy/budget integration and hosted
 runtime isolation belong to EV6-045; production coding services and release

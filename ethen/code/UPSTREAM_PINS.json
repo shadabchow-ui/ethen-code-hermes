@@ -1,7 +1,7 @@
 {
   "schema": "ethen.code.upstream-pins/1",
   "job": "EV6-044",
-  "decision": "Hermes Agent is the sole Ethen Code runtime foundation; the OpenCode-derived repository is an unchanged archive with no runtime, adapter, source import or migration dependency in this repository.",
+  "decision": "Hermes Agent is the sole Ethen Code runtime foundation and the only pinned upstream. OWNER DECISION, not verified here: the OpenCode-derived repository is treated as an unchanged archive; it is not pinned or re-verified (private repository unreadable without credentials). This repository has no runtime, adapter, source import or migration dependency on it.",
   "hermes": {
     "upstream": "https://github.com/NousResearch/hermes-agent",
     "license": "MIT",
@@ -17,8 +17,8 @@
   },
   "opencode": {
     "repository": "shadabchow-ui/ethen-code-oc",
-    "status": "ARCHIVE_UNCHANGED_NOT_RE_PINNED_HERE",
-    "note": "The repository is private; no credential was used and no commit id could be read on 2026-11-08, so its m04-integration baseline is not re-verified by this record. Nothing in this repository imports or depends on it."
+    "status": "OWNER_DECISION_UNCHANGED_ARCHIVE_NOT_PINNED_NOT_VERIFIED",
+    "note": "Owner decision: unchanged archive, not pinned or re-verified; private repository unreadable without credentials. No credential was used and no commit id could be read on 2026-11-08, so its m04-integration baseline is not verified by this record. Nothing in this repository imports or depends on it (tests scan Python/JS imports and package.json, requirements*.txt, pyproject.toml and lock-file dependency declarations; vendored node_modules and virtualenv directories are not scanned)."
   },
   "unchanged_from_pinned_base": {
     "note": "These files have the same git blob as the pinned upstream base at 5e7c2b2 (compared on 2026-11-08). The sha256 values are of the file contents and are checked by tests/ethen/test_upstream_pins.py.",
@@ -50,7 +50,7 @@
     }
   },
   "license_and_notice_files": {
-    "note": "Every tracked LICENSE/COPYING/NOTICE file (any depth), sha256 of contents; the set itself is checked, so adding or deleting one fails.",
+    "note": "Every LICENSE/LICENCE/COPYING/NOTICE-like file (any depth, any case, any suffix) found by walking the repository and by git ls-files, sha256 of contents. The set is also anchored by a path list inside tests/ethen/test_upstream_pins.py, so adding one, or removing one together with its pin entry, fails. A consistent edit of a file AND its sha256 here is not caught (self-referential).",
     "files": {
       "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6",
       "apps/desktop/src/plugins/hermes-bots/LICENSE": "5f79d321c17de8ef6e5f34967dc5b484afebeeefd87180890d9741941f6b815f",
@@ -73,7 +73,7 @@
     }
   },
   "deploy_disabled_vercel_json": {
-    "note": "The vercel.json files that disable automatic deployments (added by the preserved-source commit); the set and the contents are checked.",
+    "note": "The 12 vercel.json files that disable automatic deployments (added by the preserved-source commit). The tests walk the repository for any vercel.json/.jsonc/.json5/.js/.ts file, require the set to equal this list (also anchored by a path list in the test file) and require git.deploymentEnabled false in each. A consistent edit of a file AND its sha256 here is not caught.",
     "files": {
       "apps/bootstrap-installer/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
       "apps/desktop/electron/find-in-page-native-fixture/vercel.json": "d8209115a448d5e218f94369a0a9703c7213cf26d71c967565b341d104100ea7",
