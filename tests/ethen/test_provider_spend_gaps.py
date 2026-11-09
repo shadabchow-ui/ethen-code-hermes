@@ -5,12 +5,14 @@ zero-price synthetic lane, so cost ceilings, unapproved lanes, the loopback (loc
 availability probe and receipt labelling were proven only at ledger level or not at all.
 No network, no real model, no credentials: loopback sockets owned by the test only.
 """
+from datetime import datetime as real_datetime
 from decimal import Decimal
 from types import SimpleNamespace
 import socket
 
 import pytest
 
+from ethen.code import provider_execution
 from ethen.code.provider_execution import BoundedProvider, RouteStopped, loopback_available, token_ceiling
 from ethen.code.routing import BudgetLedger, Lane
 
@@ -57,7 +59,20 @@ def test_cost_ceiling_is_enforced_at_the_provider_before_io_with_an_exact_bounda
         assert route.receipts == []
 
 
-def test_daily_cost_ceiling_spans_tasks_through_the_provider(tmp_path):
+class FrozenClock:
+    """The provider stamps its accounting day with `datetime.now(UTC)` through the module-level `datetime`
+    name; this stands in for that name so a test never depends on the real UTC day (midnight flake)."""
+
+    def __init__(self, iso):
+        self.instant = real_datetime.fromisoformat(iso)
+
+    def now(self, tz=None):
+        return self.instant if tz is None else self.instant.astimezone(tz)
+
+
+@pytest.mark.parametrize('instant', ['2026-11-09T23:59:59+00:00', '2026-11-10T00:00:01+00:00'])
+def test_daily_cost_ceiling_spans_tasks_through_the_provider(tmp_path, monkeypatch, instant):
+    monkeypatch.setattr(provider_execution, 'datetime', FrozenClock(instant))  # both dispatches fall on one fixed UTC day
     ledger = BudgetLedger(tmp_path / 'shared.db')
     cost = one_request_cost()
     first = provider(tmp_path, ledger=ledger, task='task-a', daily_cost=cost)
